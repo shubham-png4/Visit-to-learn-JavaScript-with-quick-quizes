@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Quest - Learn JavaScript</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-container {
+            width: 90%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .progress {
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #00ff88, #00ccff);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        .score {
+            text-align: right;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            min-height: 80px;
+        }
+        
+        .options {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .option {
+            background: rgba(255,255,255,0.15);
+            padding: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(10px);
+        }
+        
+        .option.correct {
+            background: #00ff88;
+            color: #000;
+            border-color: #00cc66;
+        }
+        
+        .option.wrong {
+            background: #ff4444;
+            border-color: #cc0000;
+        }
+        
+        .feedback {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 80px;
+            font-size: 1.1rem;
+        }
+        
+        button {
+            background: linear-gradient(to right, #00ff88, #00ccff);
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .level-complete {
+            text-align: center;
+            font-size: 2rem;
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🕹️ JS Quest</h1>
+        <div class="score">Score: <span id="score">0</span>/100</div>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        
+        <div id="game-screen">
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <button id="next-btn" class="hidden">Next Question →</button>
+        </div>
+        
+        <div id="end-screen" class="hidden">
+            <div class="level-complete" id="final-score"></div>
+            <p id="message"></p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What is the correct way to declare a variable in modern JavaScript?",
+                options: [
+                    "var x = 5;",
+                    "let x = 5;",
+                    "int x = 5;",
+                    "variable x = 5;"
+                ],
+                correct: 1,
+                explanation: "✅ 'let' and 'const' are preferred in modern JS. 'var' is function-scoped and can cause bugs."
+            },
+            {
+                question: "What will console.log(1 + '2' + 3) output?",
+                options: [
+                    "6",
+                    "123",
+                    "15",
+                    "Error"
+                ],
+                correct: 1,
+                explanation: "✅ Type coercion! Number + String = String concatenation."
+            },
+            {
+                question: "How do you create a function that returns the square of a number?",
+                options: [
+                    "function square(n) { return n*n }",
+                    "const square = (n) => n*n",
+                    "Both are correct",
+                    "def square(n): return n*n"
+                ],
+                correct: 2,
+                explanation: "✅ Both traditional functions and arrow functions work in JavaScript."
+            },
+            {
+                question: "Which method adds an element to the end of an array?",
+                options: [
+                    "push()",
+                    "pop()",
+                    "shift()",
+                    "unshift()"
+                ],
+                correct: 0,
+                explanation: "✅ push() adds to the end. pop() removes from the end."
+            },
+            {
+                question: "What does === do compared to == ?",
+                options: [
+                    "Same thing",
+                    "Strict equality (checks type too)",
+                    "Only checks value",
+                    "Used for assignment"
+                ],
+                correct: 1,
+                explanation: "✅ === is strict equality. It doesn't do type coercion."
+            },
+            {
+                question: "How do you loop through all items in an array?",
+                options: [
+                    "forEach()",
+                    "for...of",
+                    "map()",
+                    "All of the above"
+                ],
+                correct: 3,
+                explanation: "✅ forEach, for...of, and map (though map creates new array) can all be used."
+            },
+            {
+                question: "What is the output of: ['a', 'b', 'c'].join('-')",
+                options: [
+                    "a-b-c",
+                    "abc",
+                    "['a','b','c']",
+                    "Error"
+                ],
+                correct: 0,
+                explanation: "✅ join() combines array elements with the separator."
+            },
+            {
+                question: "Which keyword is used to create a constant that cannot be reassigned?",
+                options: [
+                    "let",
+                    "var",
+                    "const",
+                    "static"
+                ],
+                correct: 2,
+                explanation: "✅ const prevents reassignment (though object properties can still change)."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question').textContent = `${currentQuestion + 1}. ${q.question}`;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = option;
+                div.onclick = () => selectAnswer(index);
+                optionsDiv.appendChild(div);
+            });
+            
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            updateProgress();
+        }
+
+        function selectAnswer(selectedIndex) {
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach((opt, i) => {
+                opt.style.pointerEvents = 'none';
+                if (i === q.correct) {
+                    opt.classList.add('correct');
+                }
+                if (i === selectedIndex && i !== q.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+            
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = q.explanation;
+            feedback.classList.remove('hidden');
+            
+            if (selectedIndex === q.correct) {
+                score += Math.floor(100 / questions.length);
+                document.getElementById('score').textContent = score;
+            }
+            
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showEndScreen();
+            }
+        });
+
+        function showEndScreen() {
+            document.getElementById('game-screen').classList.add('hidden');
+            const endScreen = document.getElementById('end-screen');
+            endScreen.classList.remove('hidden');
+            
+            const finalScoreEl = document.getElementById('final-score');
+            finalScoreEl.textContent = `Your Score: ${score}/100`;
+            
+            const messageEl = document.getElementById('message');
+            
+            if (score >= 90) {
+                messageEl.innerHTML = "🏆 JavaScript Master! You're ready for real projects!";
+            } else if (score >= 70) {
+                messageEl.innerHTML = "🎉 Great job! Keep practicing and you'll be a pro soon.";
+            } else if (score >= 50) {
+                messageEl.innerHTML = "👍 Solid effort! Review the explanations and try again.";
+            } else {
+                messageEl.innerHTML = "💪 Don't give up! Learning JavaScript takes time. Try again!";
+            }
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = '0';
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            loadQuestion();
+        }
+
+        // Start the game
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
